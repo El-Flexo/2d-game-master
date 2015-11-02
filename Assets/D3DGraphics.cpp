@@ -135,6 +135,20 @@ void D3DGraphics::DrawCircle(int cX, int cY, int rad, int r, int g, int b)
 	}
 }
 
+void D3DGraphics::DrawDisc(int cX, int cY, int rad, int r, int g, int b)
+{
+	for (int x = cX - rad; x < cX + rad; ++x)
+	{
+		for (int y = cY - rad; y < cY + rad; ++y)
+		{
+			if (sqrt((float)((x - cX) * (x - cX) + (y - cY) * (y - cY))) < rad)
+			{
+				PutPixel(x, y, r, g, b);
+			}
+		}
+	}
+}
+
 void D3DGraphics::BeginFrame()
 {
 	pDevice->Clear( 0,NULL,D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),0.0f,0 );

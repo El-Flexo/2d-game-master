@@ -35,6 +35,7 @@ public:
 	void PutPixel( int x,int y,int r,int g,int b );
 	void DrawLine(int x1, int y1, int x2, int y2, int r, int g, int b);
 	void DrawCircle(int cX, int cY, int rad, int r, int g, int b);
+	void DrawDisc(int cX, int cY, int rad, int r, int g, int b);
 	void BeginFrame();
 	void EndFrame();
 private:

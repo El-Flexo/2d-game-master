@@ -26,7 +26,7 @@ Game::Game( HWND hWnd,const KeyboardServer& kServer )
 	player(390, 290, 20),
 	nPoo(3),
 	dotIsEaten(false),
-	result(true),
+	gameIsOver(false),
 	speed(1)
 {
 	srand((unsigned int)time(0));
@@ -36,8 +36,8 @@ Game::Game( HWND hWnd,const KeyboardServer& kServer )
 		poo[i].width = 24;
 		poo[i].X = rand() % (WIDTH - poo[i].width);
 		poo[i].Y = rand() % (HIGHT - poo[i].width);
-
-		pooIsEaten[i] = false;
+		poo[i].xVelocity = (rand() % 8001) / 1000.0f - 4.0f;
+		poo[i].yVelocity = (rand() % 8001) / 1000.0f - 4.0f;
 	}
 
 	dot.X = rand() % (WIDTH - DOTRAD);
@@ -108,7 +108,7 @@ void Game::Go()
 //	}
 //}
 
-bool Game::isColision(Coord &model1, Coord &model2) const
+bool Game::isCollision(Model &model1, Model &model2) const
 {
 	if (model1.X + model1.width > model2.X &&
 		model1.X < model2.X + model2.width &&
@@ -364,12 +364,9 @@ void Game::DrawPoo(int x, int y)
 
 }
 
-void Game::DrawDot(Coord &dot, int r, int g, int b)
+void Game::DrawDot(Model &dot, int r, int g, int b)
 {
-	for (int i = 0; i <= dot.width / 2; ++i)
-	{
-		gfx.DrawCircle(dot.X, dot.Y, i, r - i * 15, g - i *25, b - i *10);
-	}
+	gfx.DrawDisc(dot.X, dot.Y, dot.width / 2, r, g, b);
 }
 
 void Game::DrawPlayer(int x, int y)
@@ -2429,44 +2426,55 @@ void Game::UpdateFace()
 
 void Game::UpdatePoo()
 {
-	bool flag = false;
 	for (int i = 0; i < nPoo; ++i)
-
 	{
-		poo[i].X += speed;
-		poo[i].Y += speed;
-		if (poo[i].X >= (WIDTH - poo[i].width) ||
-			poo[i].Y >= (HIGHT - poo[i].width)) 
+		poo[i].X += poo[i].xVelocity;
+		poo[i].Y += poo[i].yVelocity;
+
+		if (poo[i].X <= 0)
 		{
-			do {
-				poo[i].X -= speed;
-				poo[i].Y -= speed;
-			} while (poo[i].X <= 0 || poo[i].Y <= 0);
-			//speed *= -1;
-
-			flag = true;
+			poo[i].X = 0;
+			poo[i].xVelocity *= -1;
 		}
-		else if (poo[i].X <= 0 || poo[i].Y <= 0)
+		else if (poo[i].X >= WIDTH - poo[i].width)
 		{
-			speed *= -1;
+			poo[i].X = WIDTH - poo[i].width;
+			poo[i].xVelocity *= -1;
+		}
+		
+		if (poo[i].Y < 0) 
+		{
+			poo[i].Y = 0;
+			poo[i].yVelocity *= -1;
+		}
+		else if (poo[i].Y > HIGHT - poo[i].width)
+		{
+			poo[i].Y = HIGHT - poo[i].width;
+			poo[i].yVelocity *= -1;
 		}
 
+		// collision detect. for enemies
+		for (int j = 0; j <= i; ++j)
+		{
+			if (isCollision(poo[j], poo[i]))
+			{
+				poo[i].xVelocity *= -1;
+				poo[i].yVelocity *= -1;
 
-		result = !isColision(player, poo[i]) && result;
+				poo[j].xVelocity *= -1;
+				poo[j].yVelocity *= -1;
+				
+			}
+		}
+
+		if (isCollision(player, poo[i]))
+			gameIsOver = true; 
 	}
-
-	
-
-	//allPooIsEaten = true;
-	//for (int i = 0; i < nPoo; ++i)
-	//{
-	//	allPooIsEaten = allPooIsEaten && pooIsEaten[i];
-	//}
 }
 
 void Game::UpdateDot()
 {
-	dotIsEaten = isColision(player, dot);
+	dotIsEaten = isCollision(player, dot);
 
 	if (dotIsEaten)
 	{
@@ -2478,7 +2486,7 @@ void Game::UpdateDot()
 
 void Game::UpdateScene()
 {
-	if (result)
+	if (!gameIsOver)
 	{
 		UpdateDot();
 		UpdatePoo();
@@ -2489,23 +2497,16 @@ void Game::UpdateScene()
 void Game::ComposeFrame()
 {
 	//mazeGenerator();
-	if (!result)
+
+	for (int i = 0; i < nPoo; ++i)
+	{
+		DrawPoo(poo[i].X, poo[i].Y);
+		DrawDot(dot, 155, 155, 255);
+		DrawPlayer(player.X, player.Y);
+	}
+	
+	if (gameIsOver)
 	{
 		DrawGameOver(375, 275);
 	}
-	else
-	{
-		for (int i = 0; i < nPoo; ++i)
-		{
-			DrawPoo(poo[i].X, poo[i].Y);
-			DrawDot(dot, 255, 255, 255);
-			DrawPlayer(player.X, player.Y);
-		}
-	}
-
-	//if (allPooIsEaten)
-	//{
-	//	GameOver(375, 275);
-	//}
-	
 }

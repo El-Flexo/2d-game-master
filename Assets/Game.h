@@ -24,29 +24,32 @@
 #include "Keyboard.h"
 #include <cstdlib>
 #include <ctime>
+#include <utility>
 
 #define NPOO 30
 #define DOTRAD 10
-#define WIDTH 800
-#define HIGHT 600
+#define WIDTH 799
+#define HIGHT 599
 
-struct Coord
+struct Model
 {
-	Coord(int x, int y, int w)
+	Model(int x, int y, int w)
 	{
 		X = x;
 		Y = y;
 		width = w;
 	}
-	Coord()
+	Model()
 	{
 		X = 0;
 		Y = 0;
 		width = 0;
 	}
-	int X;
-	int Y;
+	float X;
+	float Y;
 	int width;
+	float xVelocity;
+	float yVelocity;
 };
 
 class Game
@@ -61,7 +64,7 @@ private:
 	/********************************/
 	/*  User Functions              */
 	void DrawPoo(int x, int y);
-	void DrawDot(Coord &odject, int r, int g, int b);
+	void DrawDot(Model &odject, int r, int g, int b);
 	void DrawPlayer(int x, int y);
 	void DrawGameOver(int x, int y);
 	void UpdateFace();
@@ -76,19 +79,17 @@ private:
 	/********************************/
 	/*  User Variables              */
 	int nPoo;
-	bool allPooIsEaten;
 	int speed;
-	Coord player;
-	Coord poo[NPOO];
-	Coord dot;
+	Model player;
+	Model poo[NPOO];
+	Model dot;
 
-	bool pooIsEaten[NPOO];
 	bool dotIsEaten;
-	bool result;
+	bool gameIsOver;
 
 	/********************************/
 private:
-	bool isColision(Coord &model1, Coord &model2) const;
+	bool isCollision(Model &model1, Model &model2) const;
 	//bool isDone(int curPos, int endPos);
 };
 
