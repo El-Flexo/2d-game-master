@@ -40,8 +40,8 @@ Game::Game( HWND hWnd,const KeyboardServer& kServer )
 		poo[i].yVelocity = (rand() % 8001) / 1000.0f - 4.0f;
 	}
 
-	dot.X = rand() % (WIDTH - DOTRAD);
-	dot.Y = rand() % (HIGHT - DOTRAD);
+	dot.X = DOTRAD + rand() % (WIDTH - DOTRAD);
+	dot.Y = DOTRAD + rand() % (HIGHT - DOTRAD);
 	dot.width = DOTRAD * 2;
 }
 
@@ -2478,8 +2478,8 @@ void Game::UpdateDot()
 
 	if (dotIsEaten)
 	{
-		dot.X = rand() % (WIDTH - DOTRAD);
-		dot.Y = rand() % (HIGHT - DOTRAD);
+		dot.X = DOTRAD + rand() % (WIDTH - DOTRAD);
+		dot.Y = DOTRAD + rand() % (HIGHT - DOTRAD);
 		nPoo += 2;
 	}
 }
