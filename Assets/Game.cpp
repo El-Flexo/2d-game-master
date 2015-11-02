@@ -26,8 +26,7 @@ Game::Game( HWND hWnd,const KeyboardServer& kServer )
 	player(390, 290, 20),
 	nPoo(3),
 	dotIsEaten(false),
-	gameIsOver(false),
-	speed(1)
+	gameIsOver(false)
 {
 	srand((unsigned int)time(0));
 	//mazeGenerator();
@@ -40,8 +39,7 @@ Game::Game( HWND hWnd,const KeyboardServer& kServer )
 		poo[i].yVelocity = (rand() % 8001) / 1000.0f - 4.0f;
 	}
 
-	dot.X = DOTRAD + rand() % (WIDTH - DOTRAD);
-	dot.Y = DOTRAD + rand() % (HIGHT - DOTRAD);
+	setGoal();
 	dot.width = DOTRAD * 2;
 }
 
@@ -119,6 +117,20 @@ bool Game::isCollision(Model &model1, Model &model2) const
 	}
 	else
 		return false;
+}
+
+bool Game::isCollisionRound(Model & model1, Model & model2) const
+{
+	if (sqrt((float)((model1.X - model2.X) * (model1.X - model2.X) + 
+		(model1.Y - model2.Y) * (model1.Y - model2.Y))) < model1.width / 2 + model2.width / 2)
+		return true;
+	return false;
+}
+
+void Game::setGoal()
+{
+	dot.X = DOTRAD + rand() % (WIDTH - DOTRAD * 2);
+	dot.Y = DOTRAD + rand() % (HIGHT - DOTRAD * 2);
 }
 
 //bool Game::isDone(int curPos, int endPos)
@@ -2474,13 +2486,15 @@ void Game::UpdatePoo()
 
 void Game::UpdateDot()
 {
-	dotIsEaten = isCollision(player, dot);
+	dotIsEaten = isCollisionRound(player, dot);
 
 	if (dotIsEaten)
 	{
-		dot.X = DOTRAD + rand() % (WIDTH - DOTRAD);
-		dot.Y = DOTRAD + rand() % (HIGHT - DOTRAD);
-		nPoo += 2;
+		setGoal();
+		if (nPoo < NPOO)
+			nPoo += 2;
+		else
+			nPoo = NPOO;
 	}
 }
 

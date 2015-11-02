@@ -79,7 +79,6 @@ private:
 	/********************************/
 	/*  User Variables              */
 	int nPoo;
-	int speed;
 	Model player;
 	Model poo[NPOO];
 	Model dot;
@@ -88,8 +87,10 @@ private:
 	bool gameIsOver;
 
 	/********************************/
+
 private:
 	bool isCollision(Model &model1, Model &model2) const;
-	//bool isDone(int curPos, int endPos);
+	bool isCollisionRound(Model &model1, Model &model2) const;
+	void setGoal();
 };
 
