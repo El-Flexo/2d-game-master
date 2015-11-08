@@ -1,7 +1,8 @@
 /****************************************************************************************** 
- *	Chili DirectX Framework Version 11.12.17											  *	
- *	D3DGraphics.h																		  *
- *	Copyright 2011 PlanetChili <http://www.planetchili.net>								  *
+ *	Chili DirectX Framework Version 12.04.24											  *	
+ *	Sound.h																				  *
+ *	Copyright 2012 PlanetChili.net														  *
+ *  Based on code obtained from http://www.rastertek.com								  *
  *																						  *
  *	This file is part of The Chili DirectX Framework.									  *
  *																						  *
@@ -20,32 +21,54 @@
  ******************************************************************************************/
 #pragma once
 
+#include <windows.h>
+#include <mmsystem.h>
+#include <dsound.h>
+#include <stdio.h>
 
+class DSound;
 
-#include <d3d9.h>
-#include <cstdlib>
-#include <cmath>
-
-#define SCREENHEIGHT 600
-#define SCREENWIDTH 800
-
-class D3DGraphics
+class Sound
 {
+	friend DSound;
 public:
-	D3DGraphics( HWND hWnd );
-	~D3DGraphics();
-	void PutPixel( int x,int y,int r,int g,int b );
-	// separate clipped and non-clipped functions because clipping
-	// per-pixel takes a performance hit
-	void PutPixelClipped(int x, int y, int r, int g, int b);
-	void DrawLine(int x1, int y1, int x2, int y2, int r, int g, int b);
-	void DrawCircle(int cX, int cY, int rad, int r, int g, int b);
-	void DrawDiscClipped(int cX, int cY, int rad, int r, int g, int b);
-	void BeginFrame();
-	void EndFrame();
+	Sound( const Sound& base );
+	Sound();
+	~Sound();
+	const Sound& operator=( const Sound& rhs );
+	void Play( int attenuation = DSBVOLUME_MAX );
 private:
-	IDirect3D9*			pDirect3D;
-	IDirect3DDevice9*	pDevice;
-	IDirect3DSurface9*	pBackBuffer = NULL;
-	D3DLOCKED_RECT		backRect;
+	Sound( IDirectSoundBuffer8* pSecondaryBuffer );
+private:
+	IDirectSoundBuffer8* pBuffer;
+};
+
+class DSound
+{
+private:
+	struct WaveHeaderType
+	{
+		char chunkId[4];
+		unsigned long chunkSize;
+		char format[4];
+		char subChunkId[4];
+		unsigned long subChunkSize;
+		unsigned short audioFormat;
+		unsigned short numChannels;
+		unsigned long sampleRate;
+		unsigned long bytesPerSecond;
+		unsigned short blockAlign;
+		unsigned short bitsPerSample;
+		char dataChunkId[4];
+		unsigned long dataSize;
+	};
+public:
+	DSound( HWND hWnd );
+	~DSound();
+	Sound CreateSound( char* wavFileName );
+private:
+	DSound();
+private:	
+	IDirectSound8* pDirectSound;
+	IDirectSoundBuffer* pPrimaryBuffer;
 };

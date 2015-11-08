@@ -22,40 +22,65 @@
 
 #include "D3DGraphics.h"
 #include "Keyboard.h"
+#include "Mouse.h"
+#include "Sound.h"
 #include <cstdlib>
 #include <ctime>
 #include <utility>
 
+#include "GameManager.h"
+
 #define NPOO 30
-#define DOTRAD 10
+#define DOTRAD 20
 #define WIDTH 799
-#define HIGHT 599
+#define HEIGHT 599
+#define MAXPOOSPEED 4.0f
+#define MINAPPEARDIST 30.0f
+#define FACESPEED 7
+#define WORLDHEIGHT 1199
+#define WORLDWIDTH 1599
+ // resolution of background grid
+#define GRIDRESOLUTION 50
+ // camera tracking offset vertical/horizontal
+ // is the offset from the edge off the screen 
+ // to the camera tracking rectangle
+#define CTRKOFFVERT 180
+#define CTRKOFFHOR 240
 
 struct Model
 {
+	Model() : Model(0, 0, 0) {}
+
 	Model(int x, int y, int w)
 	{
+		width = w;
 		X = x;
 		Y = y;
-		width = w;
+		cX = 0.0f;
+		cY = 0.0f;
+		xVelocity = 0.0f;
+		yVelocity = 0.0f;
 	}
-	Model()
-	{
-		X = 0;
-		Y = 0;
-		width = 0;
-	}
+
 	float X;
 	float Y;
+	float cX;
+	float cY;
 	int width;
 	float xVelocity;
 	float yVelocity;
 };
 
+struct Coord
+{
+	int X;
+	int Y;
+};
+
 class Game
 {
 public:
-	Game( HWND hWnd,const KeyboardServer& kServer );
+	Game( HWND hWnd, const KeyboardServer& kServer, const MouseServer& mServer);
 	void Go();
 	void mazeGenerator();
 
@@ -63,34 +88,45 @@ private:
 	void ComposeFrame();
 	/********************************/
 	/*  User Functions              */
-	void DrawPoo(int x, int y);
+	void DrawPlayerClipped(int x, int y);
+	void DrawPooClipped(int x, int y);
+	void DrawPooUnclipped(int x, int y);
 	void DrawDot(Model &odject, int r, int g, int b);
-	void DrawPlayer(int x, int y);
 	void DrawGameOver(int x, int y);
 	void UpdateFace();
 	void UpdatePoo();
-	void UpdateDot();
+	void UpdateCamera();
 	void UpdateScene();
-
-	/********************************/
-private:
-	D3DGraphics gfx;
-	KeyboardClient kbd;
-	/********************************/
-	/*  User Variables              */
-	int nPoo;
-	Model player;
-	Model poo[NPOO];
-	Model dot;
-
-	bool dotIsEaten;
-	bool gameIsOver;
-
-	/********************************/
-
-private:
+	void RandomizePooVelocity(int index);
+	void RandomizePooPosition(int index);
+	void ResetGame();
+	void ResetGoal();
 	bool isCollision(Model &model1, Model &model2) const;
 	bool isCollisionRound(Model &model1, Model &model2) const;
-	void setGoal();
+	// unlike drawface and drawpoo, drawbackground works
+	// in world space instead of screen space, so it needs
+	// the camera coordinates
+	void DrawBackgroundClipped(const Coord &camera);
+
+	/********************************/
+private:
+	D3DGraphics			gfx;
+	KeyboardClient		kbd;
+	MouseClient			mouse;
+	DSound				audio;
+	/********************************/
+	/*  User Variables              */
+	int			nPoo;
+	int			nGoal;
+	Model		player;
+	Model		poo[NPOO];
+	Model		dot;
+	Coord		camera;
+
+	bool		gameIsOver;
+
+	Sound		fart;
+	Sound		ting;
+	/********************************/
 };
 

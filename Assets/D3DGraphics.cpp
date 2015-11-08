@@ -19,6 +19,7 @@
  *	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
  ******************************************************************************************/
 #include "D3DGraphics.h"
+#include <assert.h>
 
 D3DGraphics::D3DGraphics( HWND hWnd )
 {
@@ -61,7 +62,19 @@ D3DGraphics::~D3DGraphics()
 
 void D3DGraphics::PutPixel( int x,int y,int r,int g,int b )
 {
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < SCREENWIDTH);
+	assert(y < SCREENHEIGHT);
+	((D3DCOLOR*)backRect.pBits)[x + (backRect.Pitch >> 2) * y] = D3DCOLOR_XRGB(r, g, b);
+}
+
+void D3DGraphics::PutPixelClipped(int x, int y, int r, int g, int b)
+{
+	if (x >= 0 && y >= 0 && x < SCREENWIDTH && y < SCREENHEIGHT)
+	{
 		((D3DCOLOR*)backRect.pBits)[x + (backRect.Pitch >> 2) * y] = D3DCOLOR_XRGB(r, g, b);
+	}
 }
 
 void D3DGraphics::DrawLine(int x1, int y1, int x2, int y2, int r, int g, int bl)
@@ -135,7 +148,7 @@ void D3DGraphics::DrawCircle(int cX, int cY, int rad, int r, int g, int b)
 	}
 }
 
-void D3DGraphics::DrawDisc(int cX, int cY, int rad, int r, int g, int b)
+void D3DGraphics::DrawDiscClipped(int cX, int cY, int rad, int r, int g, int b)
 {
 	for (int x = cX - rad; x < cX + rad; ++x)
 	{
@@ -143,7 +156,7 @@ void D3DGraphics::DrawDisc(int cX, int cY, int rad, int r, int g, int b)
 		{
 			if (sqrt((float)((x - cX) * (x - cX) + (y - cY) * (y - cY))) < rad)
 			{
-				PutPixel(x, y, r, g, b);
+				PutPixelClipped(x, y, r, g, b);
 			}
 		}
 	}

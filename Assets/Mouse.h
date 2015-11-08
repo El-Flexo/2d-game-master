@@ -1,7 +1,7 @@
 /****************************************************************************************** 
- *	Chili DirectX Framework Version 11.12.17											  *	
- *	D3DGraphics.h																		  *
- *	Copyright 2011 PlanetChili <http://www.planetchili.net>								  *
+ *	Chili DirectX Framework Version 12.04.24											  *	
+ *	Mouse.h																			  *
+ *	Copyright 2012 PlanetChili.net														  *
  *																						  *
  *	This file is part of The Chili DirectX Framework.									  *
  *																						  *
@@ -20,32 +20,38 @@
  ******************************************************************************************/
 #pragma once
 
+class MouseServer;
 
-
-#include <d3d9.h>
-#include <cstdlib>
-#include <cmath>
-
-#define SCREENHEIGHT 600
-#define SCREENWIDTH 800
-
-class D3DGraphics
+class MouseClient
 {
 public:
-	D3DGraphics( HWND hWnd );
-	~D3DGraphics();
-	void PutPixel( int x,int y,int r,int g,int b );
-	// separate clipped and non-clipped functions because clipping
-	// per-pixel takes a performance hit
-	void PutPixelClipped(int x, int y, int r, int g, int b);
-	void DrawLine(int x1, int y1, int x2, int y2, int r, int g, int b);
-	void DrawCircle(int cX, int cY, int rad, int r, int g, int b);
-	void DrawDiscClipped(int cX, int cY, int rad, int r, int g, int b);
-	void BeginFrame();
-	void EndFrame();
+	MouseClient( const MouseServer& server );
+	int GetMouseX() const;
+	int GetMouseY() const;
+	bool LeftIsPressed() const;
+	bool RightIsPressed() const;
+	bool IsInWindow() const;
 private:
-	IDirect3D9*			pDirect3D;
-	IDirect3DDevice9*	pDevice;
-	IDirect3DSurface9*	pBackBuffer = NULL;
-	D3DLOCKED_RECT		backRect;
+	const MouseServer& server;
+};
+
+class MouseServer
+{
+	friend MouseClient;
+public:
+	MouseServer();
+	void OnMouseMove( int x,int y );
+	void OnMouseLeave();
+	void OnMouseEnter();
+	void OnLeftPressed();
+	void OnLeftReleased();
+	void OnRightPressed();
+	void OnRightReleased();
+	bool IsInWindow() const;
+private:
+	int x;
+	int y;
+	bool leftIsPressed;
+	bool rightIsPressed;
+	bool isInWindow;
 };
