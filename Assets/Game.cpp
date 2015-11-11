@@ -153,8 +153,8 @@ bool Game::getScore()
 
 bool Game::readScore()
 {
-	fstream fin;
-	fin.open(SCOREFILE, std::ios::in);
+	std::ifstream fin;
+	fin.open(SCOREFILE);
 	if (!fin)
 	{
 		return false;
@@ -163,15 +163,15 @@ bool Game::readScore()
 
 	Score score;
 	fin.seekg(0);
-	int i = 0;
 	char ch;
 	while (!fin.eof())
 	{
-		fin >> i >> ch;
+		fin.get(ch);
+		fin.get(ch);
 		fin >> score.score >> score.time;
+		fin.get(ch);
 		InsertScore(score);
-	}
-	fin.clear();
+	} 
 
 	fin.close();
 	return true;
@@ -195,7 +195,7 @@ Score Game::GetScore()
 	Score score;
 	score.score = nGoal;
 	time_t currTime = time(NULL);
-	strftime(score.time, TIMEBUFFLEN, "%X %x", localtime(&currTime));
+	strftime(score.time, TIMEBUFFLEN, "%X_%x", localtime(&currTime));
 
 	return score;
 }
