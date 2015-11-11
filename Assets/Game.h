@@ -30,7 +30,7 @@
 #include <ctime>
 #include "Timer.h"
 #include <utility>		// swap
-//#include <iostream>
+#include <iostream>
 
 #include "GameManager.h"
 
