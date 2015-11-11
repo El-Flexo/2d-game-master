@@ -31,14 +31,19 @@ Game::Game( HWND hWnd,const KeyboardServer& kServer, const MouseServer& mServer)
 	fart = audio.CreateSound("farty.wav");
 	ting = audio.CreateSound("tinkle.wav");
 
-	//mazeGenerator();
-
 	for (int i = 0; i < NPOO; ++i)
 	{
 		poo[i].width = 24;
 	}
 
 	ResetGame();	
+	ClearScoreboard();
+}
+
+Game::~Game()
+{
+	SaveScore();
+	//getScore();
 }
 
 void Game::Go()
@@ -48,6 +53,7 @@ void Game::Go()
 	gfx.BeginFrame();
 	ComposeFrame();
 	gfx.EndFrame();
+
 }
 
 bool Game::isCollision(Model &model1, Model &model2) const
@@ -71,10 +77,171 @@ bool Game::isCollisionRound(Model & model1, Model & model2) const
 	return false;
 }
 
+bool Game::SaveGame()
+{
+	fstream fout;
+	fout.open(SAVEFILE, std::ios::out | std::ios::binary);
+	if (!fout)
+	{
+		return false;
+	}
+
+	m_Save = new Save();
+
+	m_Save->hero = player;
+	m_Save->goal = dot;
+	m_Save->cam = camera;
+	m_Save->score = nGoal;
+	m_Save->nObj = nPoo;
+
+	for (int i = 0; i < nPoo; ++i)
+	{
+		m_Save->enemy[i] = poo[i];
+	}
+
+	fout.write(reinterpret_cast<const char*>(&(*m_Save)), sizeof(Save));
+
+	delete m_Save;
+	fout.close();
+
+	return true;
+}
+
+bool Game::LoadGame()
+{
+	fstream fin;
+	fin.open(SAVEFILE, std::ios::in | std::ios::binary);
+	if (!fin)
+	{
+		return false;
+	}
+
+	m_Save = new Save();
+
+	fin.read(reinterpret_cast<char*>(&(*m_Save)), sizeof(Save));
+
+	player = m_Save->hero;
+	dot = m_Save->goal;
+	nGoal = m_Save->score;
+	nPoo = m_Save->nObj;
+	camera = m_Save->cam;
+	for (int i = 0; i < nPoo; ++i)
+		poo[i] = m_Save->enemy[i];
+
+	delete m_Save;
+	fin.close();
+
+	return true;
+}
+
+bool Game::getScore()
+{
+	fstream fout;
+	fout.open(SCOREFILE, std::ios::out | std::ios::app);
+	if (!fout)
+	{
+		return false;
+	}
+	timer.StopWatch();
+	//scores[0].time = timer.GetTimeMilli() / 1000.0f;
+	//scores[0].score = nGoal;
+	fout << "Time in game: " << timer.GetTimeMilli() / 1000.0f << "\t" << "Points: " << nGoal << std::endl;
+
+	fout.close();
+	return true;
+}
+
+bool Game::readScore()
+{
+	fstream fin;
+	fin.open(SCOREFILE, std::ios::in);
+	if (!fin)
+	{
+		return false;
+		MessageBox(NULL, L"Ошибка чтения score.txt в readScore", NULL, MB_OK);
+	}
+
+	Score score;
+	fin.seekg(0);
+	int i = 0;
+	char ch;
+	while (!fin.eof())
+	{
+		fin >> i >> ch;
+		fin >> score.score >> score.time;
+		InsertScore(score);
+	}
+	fin.clear();
+
+	fin.close();
+	return true;
+}
+
+bool Game::SaveScore()
+{
+	FILE* pFile = fopen(SCOREFILE, "w");
+
+	for (int i = 0; i < NSCORES && scores[i].score >= 0; ++i)
+	{
+		fprintf(pFile, "%d.\t%d\t%s\n", (i + 1), scores[i].score, scores[i].time);
+	}
+
+	fclose(pFile);
+	return true;
+}
+
+Score Game::GetScore()
+{
+	Score score;
+	score.score = nGoal;
+	time_t currTime = time(NULL);
+	strftime(score.time, TIMEBUFFLEN, "%X %x", localtime(&currTime));
+
+	return score;
+}
+
+void Game::ClearScoreboard()
+{
+	for (int i = 0; i < NSCORES; ++i)
+	{
+		scores[i].score = -1;
+	}
+}
+
+void Game::InsertScore(Score score)
+{
+	int i;
+	for (i = 0; i < NSCORES && scores[i].score >= score.score; ++i);
+
+	if (i < NSCORES)
+	{
+		for (int j = NSCORES - 2; j >= i; --j)
+		{
+			scores[j + 1] = scores[j];
+		}
+
+		scores[i] = score;
+	}
+}
+
+//bool Game::Save()
+//{
+//	bool result = false;
+//	//gameManager = new GameMan();
+//	result = gameMan.saveGame(player, poo, dot, camera, nGoal, nPoo);
+//	if (result)
+//	{
+//	//	delete gameManager;
+//		return true;
+//	}
+//	//delete gameManager;
+//	return false;
+//}
+
 void Game::ResetGoal()
 {
-	dot.cX = DOTRAD + rand() % (WORLDWIDTH - DOTRAD * 2);
-	dot.cY = DOTRAD + rand() % (WORLDHEIGHT - DOTRAD * 2);
+	dot.cX = (float)(DOTRAD + rand() % (WORLDWIDTH - DOTRAD * 2));
+	dot.cY = (float)(DOTRAD + rand() % (WORLDHEIGHT - DOTRAD * 2));
 	dot.X = dot.cX - DOTRAD;
 	dot.Y = dot.cY - DOTRAD;
 	dot.width = DOTRAD * 2;
@@ -578,7 +745,7 @@ void Game::DrawPooClipped(int x, int y)
 
 void Game::DrawDot(Model &dot, int r, int g, int b)
 {
-	gfx.DrawDiscClipped(dot.X, dot.Y, dot.width / 2, r, g, b);
+	gfx.DrawDiscClipped(dot.X, dot.Y, dot.width / 2.0f, r, g, b);
 }
 
 void Game::DrawPlayerClipped(int x, int y)
@@ -3009,7 +3176,7 @@ void Game::UpdatePoo()
 		}
 		else if (poo[i].X >= WORLDWIDTH - poo[i].width)
 		{
-			poo[i].X = WORLDWIDTH - poo[i].width;
+			poo[i].X = (float)(WORLDWIDTH - poo[i].width);
 			poo[i].xVelocity *= -1;
 		}
 		
@@ -3020,7 +3187,7 @@ void Game::UpdatePoo()
 		}
 		else if (poo[i].Y > WORLDHEIGHT - poo[i].width)
 		{
-			poo[i].Y = WORLDHEIGHT - poo[i].width;
+			poo[i].Y = (float)(WORLDHEIGHT - poo[i].width);
 			poo[i].yVelocity *= -1;
 		}
 
@@ -3040,6 +3207,8 @@ void Game::UpdatePoo()
 
 		if (isCollisionRound(player, poo[i]))
 		{
+			readScore();
+			InsertScore(GetScore());
 			gameIsOver = true;
 			fart.Play(-1000);
 		}
@@ -3050,6 +3219,21 @@ void Game::UpdateScene()
 {
 	if (!gameIsOver)
 	{
+		if (kbd.SpaceIsPressed())
+		{
+			if (!SaveGame())
+			{
+				MessageBox(NULL, L"Ошибка сохранения", NULL, MB_OK);
+			}
+			else
+			{
+				MessageBox(NULL, L"Игра сохранена", L"Сохранение", MB_OK);
+			}
+		}
+		else if (kbd.DownIsPressed())
+		{
+			LoadGame();
+		}
 		UpdatePoo();
 		UpdateFace();
 		UpdateCamera();
@@ -3170,6 +3354,12 @@ void Game::ResetGame()
 	gameIsOver = false;
 	camera.X = 0;
 	camera.Y = 0;
+	timer.StartWatch();
+
+	//if (kbd.DownIsPressed())
+	//{
+	//	LoadGame();
+	//}
 }
 
 void Game::RandomizePooPosition(int index)

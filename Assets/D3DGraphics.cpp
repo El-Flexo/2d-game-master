@@ -101,7 +101,7 @@ void D3DGraphics::DrawLine(int x1, int y1, int x2, int y2, int r, int g, int bl)
 
 		for (int y = y1; y <= y2; ++y)
 		{
-			x = m * y + b + 0.5f;
+			x = (int)(m * y + b + 0.5f);
 			PutPixel(x, y, r, g, bl);
 		}
 	}
@@ -123,7 +123,7 @@ void D3DGraphics::DrawLine(int x1, int y1, int x2, int y2, int r, int g, int bl)
 
 		for (int x = x1; x <= x2; ++x)
 		{
-			y = m * x + b + 0.5f;
+			y = (int)(m * x + b + 0.5f);
 			PutPixel(x, y, r, g, bl);
 		}
 	}
@@ -131,12 +131,12 @@ void D3DGraphics::DrawLine(int x1, int y1, int x2, int y2, int r, int g, int bl)
 
 void D3DGraphics::DrawCircle(int cX, int cY, int rad, int r, int g, int b)
 {
-	float radSqr = rad * rad;
+	float radSqr = (float)(rad * rad);
 	int y;
-	int x0 = 0.7071068f * rad + 0.5f;
+	int x0 = (int)(0.7071068f * rad + 0.5f);
 	for (int x = 0; x <= x0; ++x)
 	{
-		y = sqrt(radSqr - x * x) + 0.5f;
+		y = (int)(sqrt(radSqr - x * x) + 0.5f);
 		PutPixel(cX + x, cY + y, r, g, b);
 		PutPixel(cX + y, cY + x, r, g, b);
 		PutPixel(cX - x, cY + y, r, g, b);
@@ -148,11 +148,11 @@ void D3DGraphics::DrawCircle(int cX, int cY, int rad, int r, int g, int b)
 	}
 }
 
-void D3DGraphics::DrawDiscClipped(int cX, int cY, int rad, int r, int g, int b)
+void D3DGraphics::DrawDiscClipped(float cX, float cY, float rad, int r, int g, int b)
 {
-	for (int x = cX - rad; x < cX + rad; ++x)
+	for (int x = (int)(cX - rad + 0.5f); x < (int)(cX + rad + 0.5f); ++x)
 	{
-		for (int y = cY - rad; y < cY + rad; ++y)
+		for (int y = (int)(cY - rad + 0.5f); y < (int)(cY + rad + 0.5f); ++y)
 		{
 			if (sqrt((float)((x - cX) * (x - cX) + (y - cY) * (y - cY))) < rad)
 			{

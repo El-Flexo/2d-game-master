@@ -26,8 +26,10 @@
 #include <cstdlib>
 #include <cmath>
 
-#define SCREENHEIGHT 600
-#define SCREENWIDTH 800
+#include "Globals.h"
+
+//#define SCREENHEIGHT 600
+//#define SCREENWIDTH 800
 
 class D3DGraphics
 {
@@ -40,7 +42,7 @@ public:
 	void PutPixelClipped(int x, int y, int r, int g, int b);
 	void DrawLine(int x1, int y1, int x2, int y2, int r, int g, int b);
 	void DrawCircle(int cX, int cY, int rad, int r, int g, int b);
-	void DrawDiscClipped(int cX, int cY, int rad, int r, int g, int b);
+	void DrawDiscClipped(float cX, float cY, float rad, int r, int g, int b);
 	void BeginFrame();
 	void EndFrame();
 private:

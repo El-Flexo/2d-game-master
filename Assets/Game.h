@@ -20,69 +20,29 @@
  ******************************************************************************************/
 #pragma once
 
+#include "Globals.h"
+#include <Windows.h>
 #include "D3DGraphics.h"
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "Sound.h"
 #include <cstdlib>
 #include <ctime>
-#include <utility>
+#include "Timer.h"
+#include <utility>		// swap
+//#include <iostream>
 
 #include "GameManager.h"
 
-#define NPOO 30
-#define DOTRAD 20
-#define WIDTH 799
-#define HEIGHT 599
-#define MAXPOOSPEED 4.0f
-#define MINAPPEARDIST 30.0f
-#define FACESPEED 7
-#define WORLDHEIGHT 1199
-#define WORLDWIDTH 1599
- // resolution of background grid
-#define GRIDRESOLUTION 50
- // camera tracking offset vertical/horizontal
- // is the offset from the edge off the screen 
- // to the camera tracking rectangle
-#define CTRKOFFVERT 180
-#define CTRKOFFHOR 240
-
-struct Model
-{
-	Model() : Model(0, 0, 0) {}
-
-	Model(int x, int y, int w)
-	{
-		width = w;
-		X = x;
-		Y = y;
-		cX = 0.0f;
-		cY = 0.0f;
-		xVelocity = 0.0f;
-		yVelocity = 0.0f;
-	}
-
-	float X;
-	float Y;
-	float cX;
-	float cY;
-	int width;
-	float xVelocity;
-	float yVelocity;
-};
-
-struct Coord
-{
-	int X;
-	int Y;
-};
-
+#ifndef GAME
+#define GAME
 class Game
 {
 public:
 	Game( HWND hWnd, const KeyboardServer& kServer, const MouseServer& mServer);
+	~Game();
 	void Go();
-	void mazeGenerator();
+//	void mazeGenerator();
 
 private:
 	void ComposeFrame();
@@ -103,6 +63,14 @@ private:
 	void ResetGoal();
 	bool isCollision(Model &model1, Model &model2) const;
 	bool isCollisionRound(Model &model1, Model &model2) const;
+	bool SaveGame();		// mine sol
+	bool LoadGame();		// mine sol
+	bool getScore();		// mine sol
+	bool readScore();
+	bool SaveScore();		
+	Score GetScore();
+	void ClearScoreboard();
+	void InsertScore(Score scores);
 	// unlike drawface and drawpoo, drawbackground works
 	// in world space instead of screen space, so it needs
 	// the camera coordinates
@@ -114,6 +82,7 @@ private:
 	KeyboardClient		kbd;
 	MouseClient			mouse;
 	DSound				audio;
+//	GameManager			*gameManager;
 	/********************************/
 	/*  User Variables              */
 	int			nPoo;
@@ -122,6 +91,9 @@ private:
 	Model		poo[NPOO];
 	Model		dot;
 	Coord		camera;
+	Save		*m_Save;
+	Score		scores[NSCORES];
+	Timer		timer;
 
 	bool		gameIsOver;
 
@@ -130,3 +102,4 @@ private:
 	/********************************/
 };
 
+#endif
